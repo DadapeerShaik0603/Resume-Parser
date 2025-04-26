@@ -1,0 +1,14 @@
+streamlit
+google-generativeai
+pymupdf
+pymupdf4llm
+paddleocr
+paddlepaddle
+Pillow
+python-dotenv
+python-dateutil
+setuptools
+fastapi
+uvicorn
+aiofiles
+python-multipart
