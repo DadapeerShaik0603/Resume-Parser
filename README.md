@@ -1,174 +1,136 @@
-# Resume Parser
+Resume Parser Project
+Overview
+The Resume Parser project is designed to extract structured information from PDF resumes, whether they are text-based or image-based. It provides two interfaces for interaction: a web-based UI using Streamlit for manual uploads and a REST API using FastAPI for programmatic access. The project leverages advanced text extraction, OCR (Optical Character Recognition), and AI-based parsing to convert unstructured resume data into a structured JSON format, including fields such as Full Name, Email Address, Skills, Education, Work Experience, and more.
+Approach of the Project
+The project follows a modular architecture to process resumes efficiently:
 
-A dual-mode application that can parse resumes using either a Streamlit interface or a FastAPI backend. The application uses both a custom parser and the Gemini API for enhanced information extraction.
+File Handling and Preprocessing:
 
-## Features
+Resumes are accepted as PDF files through either the Streamlit UI (streamlit_app.py) or the FastAPI endpoint (api.py).
+Temporary storage is used to save the uploaded PDF for processing, with cleanup performed afterward.
 
-- Extracts personal information (name, email, phone, LinkedIn)
-- Identifies skills
-- Extracts education details
-- Extracts work experience
-- Handles both text-based and image-based PDFs using PaddleOCR
-- Provides confidence scores for each extracted field
-- Normalizes date formats
-- Intelligent skill detection
-- Dual interface options (Streamlit UI or FastAPI)
-- Gemini API integration for enhanced parsing
 
-## Prerequisites
+Text Extraction:
 
-Before setting up the project, you'll need:
-1. Python 3.7 or higher
-2. A Gemini API key (get it from [Google AI Studio](https://makersuite.google.com/app/apikey))
+For text-based PDFs, the pymupdf and pymupdf4llm libraries are used to extract text and convert it to Markdown format.
+For image-based PDFs or when text extraction fails, the PDF is converted to images (PNG) using pymupdf, and OCR is performed using paddleocr to extract text from these images.
 
-## Step-by-Step Setup and Running Instructions
 
-### Step 1: Clone the Repository
-```bash
+AI-Powered Parsing:
+
+The extracted text is processed by the Google Gemini API (google-generativeai) to parse structured data.
+The Gemini model is prompted to extract specific fields (e.g., Full Name, Skills, Education) with confidence scores, normalizing dates and detecting skills intelligently (e.g., identifying "Python" in "Experienced in Python development").
+The result is returned as a JSON object with field values and confidence scores.
+
+
+Dual Interface:
+
+Streamlit UI: A user-friendly interface (streamlit_app.py) allows users to upload a PDF and view the extracted information in a formatted display, along with the raw JSON output.
+FastAPI Endpoint: A REST API (api.py) provides a /parse_resume POST endpoint for programmatic access, accepting a PDF file and returning the parsed JSON.
+
+
+Modular Design:
+
+Shared logic for resume parsing is encapsulated in resume_parser.py, which both streamlit_app.py and api.py import, ensuring code reusability and maintainability.
+The project avoids running both Streamlit and FastAPI in the same script to prevent runtime conflicts (e.g., port binding or signal handling issues).
+
+
+
+Libraries/Tools Used
+The project relies on several Python libraries and tools to achieve its functionality:
+
+pymupdf: For opening and processing PDF files, including text extraction and conversion to images.
+pymupdf4llm: Converts PDF content to Markdown format for easier parsing.
+paddleocr: Performs OCR on image-based PDFs to extract text from images.
+paddlepaddle: Backend for paddleocr, providing the OCR engine.
+google-generativeai: Interfaces with the Google Gemini API for AI-powered structured data extraction.
+streamlit: Creates the web-based UI for uploading and displaying parsed resume data.
+fastapi: Implements the REST API for programmatic access to the resume parsing functionality.
+uvicorn: An ASGI server to run the FastAPI application.
+aiofiles: For asynchronous file I/O operations, improving performance when handling uploads.
+Pillow (PIL): For image processing, particularly when handling PNG conversions.
+python-dotenv: Loads environment variables (e.g., Gemini API key) from a .env file.
+python-dateutil: Parses and normalizes dates in the extracted data.
+asyncio and concurrent.futures: For asynchronous processing to improve performance during text extraction and OCR.
+hashlib: Computes file hashes to uniquely identify uploaded files.
+json and re: For JSON parsing and regular expression-based text cleaning.
+
+Assumptions and Limitations
+Assumptions
+
+PDF Format: The project assumes that resumes are provided in PDF format. Other formats (e.g., Word, images) are not supported.
+Gemini API Access: A valid Google Gemini API key is required and must be provided in a .env file as GEMINI_API_KEY.
+English Language: The OCR and parsing logic assume that the resume is primarily in English, as paddleocr is configured for English (lang='en').
+Internet Connectivity: The Gemini API requires an active internet connection to process the extracted text.
+System Resources: The system has sufficient memory and CPU resources to handle PDF-to-image conversion and OCR, which can be resource-intensive.
+
+Limitations
+
+OCR Accuracy: The accuracy of text extraction from image-based PDFs depends on the quality of the PDF and the performance of paddleocr. Poor-quality scans or complex layouts may lead to errors.
+Gemini API Dependency: The structured data extraction relies on the Gemini API, which may have rate limits, costs, or availability issues. Additionally, the model's accuracy in parsing fields depends on the clarity and structure of the input text.
+Language Support: Currently, the project is optimized for English resumes. Non-English resumes may not be parsed accurately without adjusting the OCR language settings.
+Performance: Processing large PDFs or resumes with many pages can be slow due to the need for image conversion and OCR. The ProcessPoolExecutor is used to parallelize some tasks, but performance may still be a bottleneck on low-spec systems.
+File System Issues: Running the project in cloud-synced directories (e.g., OneDrive) can cause file-watching issues with Streamlit or Uvicorn's --reload option. It’s recommended to run the project in a local directory to avoid such problems.
+Error Handling: While the project includes basic error handling, unexpected PDF formats or corrupted files may still cause crashes. Users should ensure PDFs are well-formed.
+Security: The API does not implement authentication or rate limiting, making it potentially vulnerable if exposed publicly. For production use, additional security measures should be added.
+
+Setup Instructions
+
+Clone the Repository:
 git clone <repository-url>
-cd resume-parser
-```
+cd Resume Parser
 
-### Step 2: Set Up the Environment
 
-#### Windows
-1. Run the setup script:
-```bash
-setup_venv.bat
-```
+Set Up Virtual Environment:
+python -m venv resume_parser_env
+.\resume_parser_env\Scripts\activate  # On Windows
+source resume_parser_env/bin/activate  # On macOS/Linux
 
-#### Linux/Mac
-1. Make the setup script executable:
-```bash
-chmod +x setup_venv.sh
-```
 
-2. Run the setup script:
-```bash
-./setup_venv.sh
-```
+Install Dependencies:
+pip install -r requirements.txt
 
-### Step 3: Configure the Gemini API Key
 
-1. Open the `.env` file in a text editor
-2. Replace `your_gemini_api_key_here` with your actual Gemini API key
-3. Save the file
+Configure Environment:
 
-Example `.env` file:
-```
-# Gemini API Configuration
-GEMINI_API_KEY=AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+Create a .env file in the project root and add your Gemini API key:GEMINI_API_KEY=your-api-key-here
 
-# Application Configuration
-TEMP_FILES_DIR=./temp_files
-```
 
-### Step 4: Run the Application
 
-You can run the application in either Streamlit mode (for UI) or FastAPI mode (for API access).
 
-#### Option 1: Streamlit Mode (UI)
-1. Activate the virtual environment:
-```bash
-# Windows
-venv\Scripts\activate
+Run the Streamlit UI:
+streamlit run streamlit_app.py
 
-# Linux/Mac
-source venv/bin/activate
-```
 
-2. Run the Streamlit app:
-```bash
-streamlit run app.py
-```
+Open the provided URL (e.g., http://localhost:8501) in your browser to upload a resume.
 
-3. Open your web browser and navigate to http://localhost:8501
-4. Upload a resume PDF file
-5. View the extracted information with confidence scores
 
-#### Option 2: FastAPI Mode (API)
-1. Activate the virtual environment (if not already activated):
-```bash
-# Windows
-venv\Scripts\activate
+Run the FastAPI Server:
 
-# Linux/Mac
-source venv/bin/activate
-```
+In a separate terminal, activate the virtual environment and run:uvicorn api:app --reload
 
-2. Run the FastAPI server:
-```bash
-python api.py
-```
 
-3. The API will be available at http://localhost:8000
-4. Use the following endpoints:
-   - POST `/parse-resume`: Upload and parse a resume PDF
-   - GET `/health`: Check the API health status
+Access the API at http://127.0.0.1:8000/docs to test the /parse_resume endpoint.
 
-5. Example API usage:
-```bash
-curl -X POST "http://localhost:8000/parse-resume" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "file=@resume.pdf"
-```
 
-### Step 5: Deactivate the Virtual Environment (When Done)
 
-When you're finished working with the project:
-```bash
-deactivate
-```
+Usage
 
-## Troubleshooting
+Streamlit UI: Upload a PDF resume to view extracted fields and raw JSON output.
+FastAPI Endpoint: Send a POST request to /parse_resume with a PDF file to get parsed data in JSON format. Example using cURL:curl -X POST -F "file=@path/to/resume.pdf" http://127.0.0.1:8000/parse_resume
 
-### PyMuPDF Installation Issues (Windows)
 
-If you encounter errors while installing PyMuPDF, follow these steps:
 
-1. Install Visual Studio Build Tools:
-   - Download from: https://visualstudio.microsoft.com/visual-cpp-build-tools/
-   - Select "Desktop development with C++"
-   - Include Windows 10 SDK
-   - Complete the installation
+Troubleshooting
 
-2. Try installing PyMuPDF using a pre-built wheel:
-```bash
-pip install --only-binary :all: PyMuPDF
-```
+Port Conflicts: Ensure no other processes are using ports 8501 (Streamlit) or 8000 (FastAPI). Use netstat -aon | findstr :port to check and taskkill /PID <pid> /F to terminate conflicting processes.
+OneDrive Issues: Move the project to a local directory (e.g., C:\Users\peer1\Documents\Guvi_Projects\Resume Parser) to avoid file-watching issues with Streamlit or Uvicorn.
+Gemini API Errors: Verify your API key and internet connection. Check for rate limits or quota issues with the Gemini API.
 
-3. If the above doesn't work, try installing a specific version:
-```bash
-pip install PyMuPDF==1.23.8
-```
+Future Improvements
 
-### Other Common Issues
+Add support for additional languages by configuring paddleocr for other languages.
+Implement authentication and rate limiting for the FastAPI endpoint.
+Optimize performance for large PDFs by caching intermediate results.
+Enhance error handling for malformed PDFs or unexpected API responses.
 
-1. If you encounter any issues with the setup scripts:
-   - Make sure Python 3.7+ is installed
-   - Check if you have write permissions in the project directory
-   - Verify your Gemini API key is correct
-
-2. If the application fails to start:
-   - Ensure the virtual environment is activated
-   - Check if all dependencies are installed correctly
-   - Verify the `.env` file exists and contains the correct API key
-
-3. If you get API-related errors:
-   - Verify your Gemini API key is valid
-   - Check your internet connection
-   - Ensure you're not exceeding API rate limits
-
-## Requirements
-
-- Python 3.7+
-- See requirements.txt for Python package dependencies
-- PaddleOCR for image-based PDF support
-- Gemini API key for enhanced parsing
-
-## Notes
-
-- The parser works best with well-formatted resumes
-- Confidence scores range from 0 to 1, with 1 being the most confident
-- Missing fields will be marked as "Not found"
-- The app supports both text-based and image-based PDFs
-- Gemini API provides enhanced parsing capabilities
-- Results are returned in JSON format when using the API 
