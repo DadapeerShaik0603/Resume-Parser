@@ -105,15 +105,3 @@ The project relies on several Python libraries and tools to achieve its function
   curl -X POST -F "file=@path/to/resume.pdf" http://127.0.0.1:8000/parse_resume
   ```
 
-## Troubleshooting
-
-- **Port Conflicts**: Ensure no other processes are using ports `8501` (Streamlit) or `8000` (FastAPI). Use `netstat -aon | findstr :port` to check and `taskkill /PID <pid> /F` to terminate conflicting processes.
-- **OneDrive Issues**: Move the project to a local directory (e.g., `C:\Users\Shaik\Documents\Task\Resume Parser`) to avoid file-watching issues with Streamlit or Uvicorn.
-- **Gemini API Errors**: Verify your API key and internet connection. Check for rate limits or quota issues with the Gemini API.
-
-## Future Improvements
-
-- Add support for additional languages by configuring `paddleocr` for other languages.
-- Implement authentication and rate limiting for the FastAPI endpoint.
-- Optimize performance for large PDFs by caching intermediate results.
-- Enhance error handling for malformed PDFs or unexpected API responses.
