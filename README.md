@@ -49,7 +49,7 @@ The project relies on several Python libraries and tools to achieve its function
 - **hashlib**: Computes file hashes to uniquely identify uploaded files.
 - **json** and **re**: For JSON parsing and regular expression-based text cleaning.
 
-## Assumptions and Limitations
+## Assumptions
 
 ### Assumptions
 - **PDF Format**: The project assumes that resumes are provided in PDF format. Other formats (e.g., Word, images) are not supported.
