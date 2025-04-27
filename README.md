@@ -58,15 +58,6 @@ The project relies on several Python libraries and tools to achieve its function
 - **Internet Connectivity**: The Gemini API requires an active internet connection to process the extracted text.
 - **System Resources**: The system has sufficient memory and CPU resources to handle PDF-to-image conversion and OCR, which can be resource-intensive.
 
-### Limitations
-- **OCR Accuracy**: The accuracy of text extraction from image-based PDFs depends on the quality of the PDF and the performance of `paddleocr`. Poor-quality scans or complex layouts may lead to errors.
-- **Gemini API Dependency**: The structured data extraction relies on the Gemini API, which may have rate limits, costs, or availability issues. Additionally, the model's accuracy in parsing fields depends on the clarity and structure of the input text.
-- **Language Support**: Currently, the project is optimized for English resumes. Non-English resumes may not be parsed accurately without adjusting the OCR language settings.
-- **Performance**: Processing large PDFs or resumes with many pages can be slow due to the need for image conversion and OCR. The `ProcessPoolExecutor` is used to parallelize some tasks, but performance may still be a bottleneck on low-spec systems.
-- **File System Issues**: Running the project in cloud-synced directories (e.g., OneDrive) can cause file-watching issues with Streamlit or Uvicorn's `--reload` option. It’s recommended to run the project in a local directory to avoid such problems.
-- **Error Handling**: While the project includes basic error handling, unexpected PDF formats or corrupted files may still cause crashes. Users should ensure PDFs are well-formed.
-- **Security**: The API does not implement authentication or rate limiting, making it potentially vulnerable if exposed publicly. For production use, additional security measures should be added.
-
 ## Setup Instructions
 
 1. **Clone the Repository**:
