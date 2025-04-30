@@ -210,18 +210,27 @@ async def root():
     return {
         "message": "Welcome to the AI Resume Parser API",
         "documentation": "Visit /docs for API documentation and to test the /parse_resume endpoint",
-        "endpoint": "POST /parse_resume to upload a PDF resume and get parsed data"
+        "endpoint": "POST /parse_resume to upload one or more PDF resumes and get parsed data"
     }
 
 @app.post("/parse_resume")
-async def parse_resume(file: UploadFile):
-    if not file.filename.endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+async def parse_resume(files: List[UploadFile]):
+    # Validate that all files are PDFs
+    for file in files:
+        if not file.filename.endswith(".pdf"):
+            raise HTTPException(status_code=400, detail=f"File {file.filename} is not a PDF. Only PDF files are supported.")
+    
+    results = []
+    temp_folder = os.path.abspath("temp_resumes")
     
     try:
-        temp_folder = os.path.abspath("temp_resumes")
-        file_content = await file.read()
-        result = await process_resume(file_content, temp_folder)
-        return JSONResponse(content=result)
+        for file in files:
+            file_content = await file.read()
+            result = await process_resume(file_content, temp_folder)
+            results.append({
+                "filename": file.filename,
+                "parsed_data": result
+            })
+        return JSONResponse(content=results)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing resume: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error processing resumes: {str(e)}")
